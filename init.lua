@@ -22,30 +22,12 @@ minetest.log('action', 'intllib loaded')
 end
 
 compost = {}
-compost.compostable_groups = {'flora', 'leaves', 'flower'}
-compost.compostable_nodes = {
-	'default:cactus',
-	'default:papyrus',
-	'default:dry_shrub',
-	'default:junglegrass',
-	'default:grass_1',
-	'default:dry_grass_1',
-	'farming:wheat',
-	'farming:straw',
-	'farming:cotton',
-}
-compost.compostable_items = {}
-for _, v in pairs(compost.compostable_nodes) do
-	compost.compostable_items[v] = true
-end
+compost.compostable_groups = {'food', 'plant', 'flower', 'leaves', 'sapling'}
 
 local function formspec(pos)
 	local spos = pos.x..','..pos.y..','..pos.z
 	local formspec =
 		'size[8,8.5]'..
-		default.gui_bg..
-		default.gui_bg_img..
-		default.gui_slots..
 		'list[nodemeta:'..spos..';src;0,0;8,1;]'..
 		'list[nodemeta:'..spos..';dst;3.5,2;1,1;]'..
 		'list[current_player;main;0,4.25;8,1;]'..
@@ -53,15 +35,11 @@ local function formspec(pos)
 		'listring[nodemeta:'..spos ..';dst]'..
 		'listring[current_player;main]'..
 		'listring[nodemeta:'..spos ..';src]'..
-		'listring[current_player;main]'..
-		default.get_hotbar_bg(0, 4.25)
+		'listring[current_player;main]'
 	return formspec
 end
 
 local function is_compostable(input)
-	if compost.compostable_items[input] then
-		return true
-	end
 	for _, v in pairs(compost.compostable_groups) do
 		if minetest.get_item_group(input, v) > 0 then
 			return true
@@ -117,21 +95,21 @@ local function update_timer(pos)
 	local timer = minetest.get_node_timer(pos)
 	local meta = minetest.get_meta(pos)
 	local count = count_input(pos)
-	if not timer:is_started() and count >= 8 then
+	if not timer:is_started() and count >= 4 then
 		timer:start(30)
 		meta:set_int('progress', 0)
 		meta:set_string('infotext', i18n('progress: @1%', '0'))
 		return
 	end
-	if timer:is_started() and count < 8 then
+	if timer:is_started() and count < 4 then
 		timer:stop()
-		meta:set_string('infotext', i18n('To start composting, place some organic matter inside.'))
+		meta:set_string('infotext', i18n('To start composting, place some organic matter inside the 4 slots.'))
 		meta:set_int('progress', 0)
 	end
 end
 
 local function create_compost(pos)
-	local q = 8
+	local q = 4
 	local meta = minetest.get_meta(pos)
 	local inv = meta:get_inventory()
 	local stacks = inv:get_list('src')
@@ -150,25 +128,25 @@ local function create_compost(pos)
 		end
 	end
 	local dirt_count = inv:get_stack('dst', 1):get_count()
-	inv:set_stack('dst', 1, 'default:dirt ' .. (dirt_count + 1))
+	inv:set_stack('dst', 1, 'mcl_core:dirt ' .. (dirt_count + 1))
 end
 
 local function on_timer(pos)
 	local timer = minetest.get_node_timer(pos)
 	local meta = minetest.get_meta(pos)
-	local progress = meta:get_int('progress') + 10
+	local progress = meta:get_int('progress') + 25
 	if progress >= 100 then
 		create_compost(pos)
 		meta:set_int('progress', 0)
 	else
 		meta:set_int('progress', progress)
 	end
-	if count_input(pos) >= 8 then
+	if count_input(pos) >= 4 then
 		meta:set_string('infotext', i18n('progress: @1%', progress))
 		return true
 	else
 		timer:stop()
-		meta:set_string('infotext', i18n('To start composting, place some organic matter inside.'))
+		meta:set_string('infotext', i18n('To start composting, place some organic matter inside the 4 slots.'))
 		meta:set_int('progress', 0)
 		return false
 	end
@@ -177,9 +155,9 @@ end
 local function on_construct(pos)
 	local meta = minetest.get_meta(pos)
 	local inv = meta:get_inventory()
-	inv:set_size('src', 8)
+	inv:set_size('src', 4)
 	inv:set_size('dst', 1)
-	meta:set_string('infotext', i18n('To start composting, place some organic matter inside.'))
+	meta:set_string('infotext', i18n('To start composting, place some organic matter inside the 4 slots.'))
 	meta:set_int('progress', 0)
 end
 
@@ -251,7 +229,7 @@ local function on_punch(pos, node, player, pointed_thing)
 	local wielded_item = player:get_wielded_item() --recheck
 	if compost_count > 0 and wielded_item:is_empty() then
 		inv:set_stack('dst', 1, '')
-		player:set_wielded_item('default:dirt ' .. compost_count)
+		player:set_wielded_item('mcl_core:dirt' .. compost_count)
 		minetest.log('action', player:get_player_name() .. ' takes stuff from compost bin at ' .. minetest.pos_to_string(pos))
 		update_nodebox(pos)
 		update_timer(pos)
@@ -279,7 +257,7 @@ minetest.register_node("compost:wood_barrel_empty", {
 	paramtype = "light",
 	is_ground_content = false,
 	groups = {choppy = 3},
-	sounds =  default.node_sound_wood_defaults(),
+	sounds =  mcl_sounds.node_sound_wood_defaults(),
 	on_timer = on_timer,
 	on_construct = on_construct,
 	on_rightclick = on_rightclick,
@@ -314,7 +292,7 @@ minetest.register_node("compost:wood_barrel", {
 	paramtype = "light",
 	is_ground_content = false,
 	groups = {choppy = 3, not_in_creative_inventory = 1},
-	sounds =  default.node_sound_wood_defaults(),
+	sounds =  mcl_sounds.node_sound_wood_defaults(),
 	on_timer = on_timer,
 	on_construct = on_construct,
 	on_rightclick = on_rightclick,
@@ -331,7 +309,7 @@ minetest.register_craft({
 	recipe = {
 		{"group:wood", "", "group:wood"},
 		{"group:wood", "", "group:wood"},
-		{"group:wood", "stairs:slab_wood", "group:wood"}
+		{"group:wood", "group:wood_slab", "group:wood"}
 	}
 })
 
