@@ -22,14 +22,16 @@ minetest.log('action', 'intllib loaded')
 end
 
 compost = {}
-compost.compostable_groups = {'food', 'plant', 'flower', 'leaves', 'sapling'}
+compost.compostable_groups = {'food', 'plant', 'flower', 'leaves', 'sapling', 'compostable'}
 
 local function formspec(pos)
 	local spos = pos.x..','..pos.y..','..pos.z
 	local formspec =
 		'size[8,8.5]'..
-		'list[nodemeta:'..spos..';src;0,0;8,1;]'..
-		'list[nodemeta:'..spos..';dst;3.5,2;1,1;]'..
+		'image[-0.31,-0.35;10.48,11;compost_bin_bg.png]'..
+		'image[2.5,-0.2;4,1;compostbin_font.png]'..
+		'list[nodemeta:'..spos..';src;2,0.75;4,1;]'..
+		'list[nodemeta:'..spos..';dst;3.5,2.75;1,1;]'..
 		'list[current_player;main;0,4.25;8,1;]'..
 		'list[current_player;main;0,5.5;8,3;8]'..
 		'listring[nodemeta:'..spos ..';dst]'..

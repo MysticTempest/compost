@@ -19,5 +19,13 @@ http://www.gnu.org/licenses/gpl-3.0.html
 
 License for Media
 -----------------
-
+compost_compost.png & compost_bin_bg.png
 CC-BY-SA 4.0 - MysticTempest
+
+
+compostbin_font.png
+Font sourced from: https://opengameart.org/content/minimalist-pixel-fonts
+by kheftel
+CC0
+
+
